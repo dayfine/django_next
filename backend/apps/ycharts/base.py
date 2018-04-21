@@ -9,7 +9,7 @@ class BaseSecurityClient(abc):
         self.header = {
             'X-YCHARTSAUTHORIZATION': api_key,
         }
-        
+
 
 
     def get_securities(self):

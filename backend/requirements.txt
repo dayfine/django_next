@@ -1,2 +1,5 @@
 django
 requests
+dateutil
+pandas
+numpy
