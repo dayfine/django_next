@@ -1,5 +1,6 @@
 import Layout from '../components/MyLayout.js'
 import Link from 'next/link'
+import '../static/stylesheets/index.css'
 import withRoot from '../src/withRoot'
 
 function PostLink ({ post }) {

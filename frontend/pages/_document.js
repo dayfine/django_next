@@ -22,10 +22,10 @@ class MyDocument extends Document {
               'minimum-scale=1, width=device-width, height=device-height'
             }
           />
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
-          />
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" />
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" />
+          <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+          <link rel="stylesheet" href="/_next/static/style.css" />
         </Head>
         <body>
           <Main />
