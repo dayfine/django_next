@@ -1,7 +1,6 @@
 const express = require('express')
-const axios = require('axios');
+const request = require('request')
 const bodyParser = require('body-parser')
-const fetch = require('isomorphic-unfetch')
 const morgan = require('morgan')
 const cors = require('cors')
 const next = require('next')
@@ -37,22 +36,21 @@ app
 
     server.get('/api/*', (req, res, next)=> {
       const API_BASE_URL = 'https://ycharts.com/api/v3/'
-      const apiReqSubUrl = req.originalUrl.slice(5)
-      console.log(`${API_BASE_URL}${apiReqSubUrl}`, API_KEY)
-      fetch(`${API_BASE_URL}${apiReqSubUrl}`, {
-          headers: {
-            'X-YCHARTSAUTHORIZATION': API_KEY,
-          }
-        })
-        .then(response=>{
-          console.log(Object.keys(response))
-          res.send({
-            //full: response,
-            results: response.response,
-            // status: response.status,
-          })
-        })
-        .catch(next)
+      const apiReqSubUrl = req.originalUrl.slice(5) // slice off '/api/'
+
+      const option = {
+        url: `${API_BASE_URL}${apiReqSubUrl}`,
+        headers: {
+          'User-Agent': 'request',
+          'X-YCHARTSAUTHORIZATION': API_KEY,
+        }
+      }
+
+      // tbh I don't know how to get this to work with axios or fetch
+      request(option, (error, response, body) => {
+        if (error) return next(error)
+        res.send(body)
+      })
     })
 
     server.get('*', (req, res) => {
