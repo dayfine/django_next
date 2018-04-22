@@ -32,12 +32,25 @@ class DebtSecurity:
         return round(ipmt, 2), round(ppmt, 2)
 
     def calc_balance(self, period, additonal_payment=0):
-        schedule = pd.DataFrame(self.amortize())
+        schedule = pd.DataFrame(self.amortize(additonal_payment))
         schedule = schedule[[
             'Period', 'Month', 'Begin Balance', 'Payment', 'Interest',
             'Principal', 'Additional_Payment', 'End Balance'
         ]]
         schedule['Month'] = pd.to_datetime(schedule['Month'])
+
+        # Create a summary statistics table
+        payoff_date = schedule["Month"].iloc[-1]
+        stats = pd.Series(
+            [payoff_date, schedule["Period"].count(), self.rate, self.maturity,
+             self.principal, self.calc_payment(), additonal_payment, schedule["Interest"].sum()],
+            index=[
+                "Payoff Date", "Num Payments", "Interest Rate", "Years", "Principal",
+                "Payment", "Additional Payment", "Total Interest"
+            ]
+        )
+
+        return schedule, stats
 
 
     def amortize(self, additional_payment=0):
@@ -68,3 +81,5 @@ class DebtSecurity:
             p += 1
             date += relativedelta(months=1)
             beg_bal = end_bal
+
+    def amortization_table(self):
