@@ -1,0 +1,117 @@
+// importing $grid-breakpoints
+@import "_responsive.scss";
+
+* { box-sizing: border-box}
+
+$cols: 12;
+$gutter: 16px;
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 0 8px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: ($gutter / -2);
+  margin-left: ($gutter / -2);
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  &.full {
+    width: 100%;
+  }
+
+  &.no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+
+    & > [class^="col-"],
+    & > [class*=" col-"] {
+      padding-right: 0;
+      padding-left: 0;
+    }
+  }
+}
+
+.center {
+  float: none;
+  margin: 0 auto;
+}
+
+%grid-column {
+  position: relative;
+  width: 100%;
+  min-height: 1px; // Prevent columns from collapsing when empty
+  padding-right: ($gutter / 2);
+  padding-left: ($gutter / 2);
+}
+
+@mixin make-col($i) {
+  flex: 0 0 percentage($i / $cols);
+  max-width: percentage($i / $cols);
+}
+
+@mixin make-col-offset($i) {
+  $num: $i / $cols;
+  margin-left: if($num == 0, 0, percentage($num));
+}
+
+@mixin make-row-classes($name) {
+  .between-#{$name} {
+    justify-content: space-between;
+  }
+
+  .around-#{$name} {
+    justify-content: space-around;
+  }
+
+  .start-#{$name} {
+    justify-content: flex-start;
+  }
+
+  .end-#{$name} {
+    justify-content: flex-end;
+  }
+
+  .nowrap-#{$name} {
+    flex-wrap: nowrap;
+  }
+
+  .middle-#{$name} {
+    align-items: center;
+  }
+}
+
+
+@each $name, $breakpoint in $breakpoints {
+  @include make-row-classes($name)
+
+  @for $i from 1 through $cols {
+    .col-#{$name}-#{$i} {
+      @extend %grid-column;
+    }
+  }
+
+  @include media-breakpoint-up($name) {
+    .col-#{$name} {
+      flex-basis: 0;
+      flex-grow: 1;
+      max-width: 100%;
+    }
+
+    @for $i from 1 through $cols {
+      .col-#{$name}-#{$i} {
+        @include make-col($i);
+      }
+
+      .col-#{$name}-offset-#{$i} {
+        @include make-col-offset($i);
+      }
+    }
+  }
+}

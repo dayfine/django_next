@@ -15,6 +15,9 @@ const Header = () => (
     <Link href='/show'>
       <a style={linkStyle}>Show</a>
     </Link>
+    <Link href='/ycharts'>
+      <a style={linkStyle}>YCharts</a>
+    </Link>
   </div>
 )
 
