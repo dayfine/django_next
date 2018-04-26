@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {% load static %}
+    {% load render_bundle from webpack_loader %}
+    {% block inner %}
+        <div id="react">
+            <i class="pending">Loading components...</i><br><br>
+        </div>
+        <script>
+            window.props = {{props|json}};  // make sure to escape your props to prevent XSS! See here for the source for the json filter: https://gist.github.com/pirate/c18bfe4fd96008ffa0aef25001a2e88f
+            window.react_mount = document.getElementById('react');
+        </script>
+        {% render_bundle 'ycharts/components/ycharts' %}
+    {% endblock %}
+</body>
+</html>

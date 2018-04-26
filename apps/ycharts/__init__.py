@@ -1,1 +1,1 @@
-default_app_config = 'apps.portfolio.apps.PortfolioConfig'
+default_app_config = 'apps.ycharts.apps.YChartsConfig'
