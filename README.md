@@ -5,4 +5,4 @@ Articles
 ----------------
 [Django + React](https://hackernoon.com/reconciling-djangos-mvc-templates-with-react-components-3aa986cf510a)
 
-[Django + Webpack](https://owais.lone.pw/blog/webpack-plus-reactjs-and-django/)
+[Django + Webpack](https:// owais.lone.pw/blog/webpack-plus-reactjs-and-django/)

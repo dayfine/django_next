@@ -11,7 +11,6 @@ class BaseSecurityClient(abc):
         }
 
 
-
     def get_securities(self):
         pass
 
