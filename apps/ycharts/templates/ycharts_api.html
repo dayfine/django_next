@@ -13,10 +13,13 @@
             <i class="pending">Loading components...</i><br><br>
         </div>
         <script>
-            window.props = {{props|json}};  // make sure to escape your props to prevent XSS! See here for the source for the json filter: https://gist.github.com/pirate/c18bfe4fd96008ffa0aef25001a2e88f
+            // make sure to escape your props to prevent XSS!
+            // See here for the source for the json filter:
+            // https://gist.github.com/pirate/c18bfe4fd96008ffa0aef25001a2e88f
+            window.props = {{props|json}};
             window.react_mount = document.getElementById('react');
         </script>
-        {% render_bundle 'ycharts/components/ycharts' %}
+        {% render_bundle 'ycharts/components/YChartsAPI' %}
     {% endblock %}
 </body>
 </html>
