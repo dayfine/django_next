@@ -1,15 +1,17 @@
-import abc
+from abc import ABC
 import datetime
 from urllib.error import HTTPError
 
 import requests
 
 
-class BaseSecurityClient(abc):
+class BaseSecurityClient(ABC):
 
     API_BASE_URL = 'https://ycharts.com/api'
-    API_VERSION = 3
+    API_VERSION = 'v3'
     MAX_LIST_LENGTH = 100
+    SECURITY_TYPE_PATH = None
+    VALID_SECURITY_FILTERS = None
 
     def __init__(self, api_key):
         self.header = {
@@ -20,11 +22,11 @@ class BaseSecurityClient(abc):
         pass
 
     def get_points(self, security_symbols, calcs, query_date=None):
+        security_symbols, calcs = self._str_or_list(security_symbols), self._str_or_list(calcs)
+
         url_path = self._build_url_path(security_symbols, 'points', calcs)
-        if query_date:
-            params = {'date': self._format_query_date_for_url(query_date)}
-        else:
-            params = None
+        params = {'date': self._format_query_date(query_date)} if query_date else None
+        return self._get_data(url_path, params)
 
     def get_series(self):
         pass
@@ -33,12 +35,13 @@ class BaseSecurityClient(abc):
         pass
 
     def _get_data(self, url_path, params=None):
-        url = '{0}/{1}/{2}'.format(self.BASE_URL, self.API_VERSION, url_path)
+        url = '{0}/{1}/{2}'.format(self.API_BASE_URL, self.API_VERSION, url_path)
         res = requests.get(url, params=params, headers=self.header)
         return self._parse_response(res)
 
     def _parse_response(self, res):
         data = res.json()
+
         # raise any payload level errors
         if data['meta']['status'] == 'error':
             error_code = data['meta']['error_code']
@@ -59,7 +62,7 @@ class BaseSecurityClient(abc):
 
         return url_path
 
-    def _format_query_date_for_url(self, query_date):
+    def _format_query_date(self, query_date):
         if isinstance(query_date, datetime.datetime):
             return query_date.isoformat().split('T')[0]
         elif isinstance(query_date, int) and query_date < 0:
@@ -67,3 +70,8 @@ class BaseSecurityClient(abc):
         else:
             raise TypeError('Invalid Date paramter. Date should be a datetime '
                             'object or a negative integer.')
+
+    def _str_or_list(self, arg):
+        if not isinstance(arg, (list, tuple)) and arg is not None:
+            arg = [arg]
+        return arg
