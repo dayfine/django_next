@@ -2,6 +2,8 @@ django
 requests
 pandas
 numpy
+django-webpack-loader
 
 # debugging
 ipdb
+django-extensions
