@@ -37,11 +37,10 @@ class BaseSecurityClient(ABC):
     def _get_data(self, url_path, params=None):
         url = '{0}/{1}/{2}'.format(self.API_BASE_URL, self.API_VERSION, url_path)
         res = requests.get(url, params=params, headers=self.header)
-        return self._parse_response(res)
-
-    def _parse_response(self, res):
         data = res.json()
+        return self._parse_response_data(data)
 
+    def _parse_response_data(self, data):
         # raise any payload level errors
         if data['meta']['status'] == 'error':
             error_code = data['meta']['error_code']

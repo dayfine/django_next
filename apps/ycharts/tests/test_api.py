@@ -1,11 +1,12 @@
 import datetime
-import unittest
-from unittest import mock, TestCase
 import json
-from pycharts.clients import CompanyClient
+from unittest import mock, TestCase
 
+import requests
 
-class MockHttpResponse(object):
+from apps.ycharts.api.clients import CompanyClient
+
+class MockHttpResponse():
     URL_RESPONSE_INDEX = {
         'https://ycharts.com/api/v3/companies/AAPL/points/price': {
             'response': {
@@ -170,8 +171,31 @@ class MockHttpResponse(object):
         self.request = request
 
     def read(self):
-        return json.dumps(self.URL_RESPONSE_INDEX[self.request.get_full_url()])
+        return json.dumps(self.URL_RESPONSE_INDEX[self.request.url])
 
 
-def mock_urlopen(request):
-    return MockHttpResponse(request)
+def mock_get_data(url, params, headers):
+    res = requests.get(url, params=params, headers=headers)
+    return MockHttpResponse(res)
+
+
+class ClientTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.client = CompanyClient('api_key')
+
+    @mock.patch.object(CompanyClient, '_get_data', mock_get_data)
+    def test_successful_point_request(self):
+        point_rsp = self.client.get_points(['AAPL'], ['price'])
+        status = point_rsp['meta']['status']
+        security_response_data = point_rsp['response']['AAPL']
+        securty_query_status = security_response_data['meta']['status']
+        calculation_response_data = security_response_data['results']['price']
+        calculation_query_status = calculation_response_data['meta']['status']
+        calculation_query_data = calculation_response_data['data']
+        # assertions
+        self.assertEqual(status, 'ok')
+        self.assertEqual(securty_query_status, 'ok')
+        self.assertEqual(calculation_query_status, 'ok')
+        self.assertEqual(calculation_query_data, ['2016-09-15', 115.39])
