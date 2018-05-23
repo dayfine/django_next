@@ -1,8 +1,10 @@
 import datetime
-import json
 from unittest import mock, TestCase
+from urllib.parse import urlencode
+from urllib.error import HTTPError
 
 import requests
+import responses
 
 from apps.ycharts.api.clients import CompanyClient
 
@@ -167,18 +169,15 @@ URL_RESPONSE_INDEX = {
     }
 }
 
-def mock_get_data(self, url_path, params):
-    header = {
-        'X-YCHARTSAUTHORIZATION': 'api_key',
-    }
-
-    API_BASE_URL = 'https://ycharts.com/api'
-    API_VERSION = 'v3'
-
-    url = '{0}/{1}/{2}'.format(API_BASE_URL, API_VERSION, url_path)
-    res = requests.get(url, params=params, headers=header)
-    return URL_RESPONSE_INDEX[res.url]
-
+def mock_get_reponse(url, params, headers):
+    full_url = '{0}?{1}'.format(url, urlencode(params)) if params else url
+    return responses.Response(
+        method='GET',
+        url=full_url,
+        headers=headers,
+        json=URL_RESPONSE_INDEX[full_url],
+        status=200,
+    )
 
 class ClientTestCase(TestCase):
 
@@ -186,17 +185,60 @@ class ClientTestCase(TestCase):
     def setUpClass(cls):
         cls.client = CompanyClient('api_key')
 
-    @mock.patch.object(CompanyClient, '_get_data', mock_get_data)
+    @responses.activate
     def test_successful_point_request(self):
+        url = 'https://ycharts.com/api/v3/companies/AAPL/points/price'
+        responses.add(responses.GET, url, json=URL_RESPONSE_INDEX[url], status=200)
+
         point_rsp = self.client.get_points(['AAPL'], ['price'])
         status = point_rsp['meta']['status']
-        security_response_data = point_rsp['response']['AAPL']
-        securty_query_status = security_response_data['meta']['status']
-        calculation_response_data = security_response_data['results']['price']
-        calculation_query_status = calculation_response_data['meta']['status']
-        calculation_query_data = calculation_response_data['data']
-        # assertions
+        security_rsp_data = point_rsp['response']['AAPL']
+        security_query_status = security_rsp_data['meta']['status']
+        calc_rsp_data = security_rsp_data['results']['price']
+        calc_query_status = calc_rsp_data['meta']['status']
+        calc_query_data = calc_rsp_data['data']
+
         self.assertEqual(status, 'ok')
-        self.assertEqual(securty_query_status, 'ok')
-        self.assertEqual(calculation_query_status, 'ok')
-        self.assertEqual(calculation_query_data, ['2016-09-15', 115.39])
+        self.assertEqual(security_query_status, 'ok')
+        self.assertEqual(calc_query_status, 'ok')
+        self.assertEqual(calc_query_data, ['2016-09-15', 115.39])
+
+    @responses.activate
+    def test_successful_series_request(self):
+        url = 'https://ycharts.com/api/v3/companies/AAPL/series/price?start_date=2016-09-10'
+        responses.add(responses.GET, url, json=URL_RESPONSE_INDEX[url], status=200)
+
+        query_start_date = datetime.datetime(2016, 9, 10)
+        series_rsp = self.client.get_series(['AAPL'], ['price'], query_start_date=query_start_date)
+        status = series_rsp['meta']['status']
+        security_rsp_data = series_rsp['response']['AAPL']
+        security_query_status = security_rsp_data['meta']['status']
+        calc_rsp_data = security_rsp_data['results']['price']
+        calc_query_status = calc_rsp_data['meta']['status']
+        calc_query_data = calc_rsp_data['data']
+
+        self.assertEqual(status, 'ok')
+        self.assertEqual(security_query_status, 'ok')
+        self.assertEqual(calc_query_status, 'ok')
+        expected_data = [['2016-09-12', 105.44], ['2016-09-13', 107.95],
+                         ['2016-09-14', 111.77], ['2016-09-15', 115.39]]
+        self.assertEqual(calc_query_data, expected_data)
+
+    @responses.activate
+    def test_successful_info_request(self):
+        url = 'https://ycharts.com/api/v3/companies/AAPL/info/name'
+        responses.add(responses.GET, url, json=URL_RESPONSE_INDEX[url], status=200)
+
+        info_rsp = self.client.get_info_fields(['AAPL'], ['name'])
+        status = info_rsp['meta']['status']
+        security_rsp_data = info_rsp['response']['AAPL']
+        security_query_status = security_rsp_data['meta']['status']
+        info_response_data = security_rsp_data['results']['name']
+        info_query_status = info_response_data['meta']['status']
+        info_query_data = info_response_data['data']
+
+        self.assertEqual(status, 'ok')
+        self.assertEqual(security_query_status, 'ok')
+        self.assertEqual(info_query_status, 'ok')
+        self.assertEqual(info_query_data, 'Apple')
+
